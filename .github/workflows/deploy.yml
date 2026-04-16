@@ -1,0 +1,43 @@
+name: Deploy to AWS & GCP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-aws:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to AWS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ${{ secrets.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            cd /var/www/multi-app-cicd || git clone https://github.com/yanyan-handayani/multi-app-cicd.git /var/www/multi-app-cicd
+            cd /var/www/multi-app-cicd
+            git pull
+            docker compose down || true
+            docker compose up -d --build
+
+  deploy-gcp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to GCP
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.GCP_HOST }}
+          username: ${{ secrets.GCP_USER }}
+          key: ${{ secrets.GCP_SSH_KEY }}
+          script: |
+            cd /var/www/multi-app-cicd || git clone https://github.com/yanyan-handayani/multi-app-cicd.git /var/www/multi-app-cicd
+            cd /var/www/multi-app-cicd
+            git pull
+            docker compose down || true
+            docker compose up -d --build
