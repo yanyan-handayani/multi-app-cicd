@@ -1,4 +1,4 @@
-name: Deploy to AWS & GCP
+name: Deploy Node to GCP
 
 on:
   push:
@@ -6,38 +6,65 @@ on:
       - main
 
 jobs:
-  deploy-aws:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to AWS
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.AWS_HOST }}
-          username: ${{ secrets.AWS_USER }}
-          key: ${{ secrets.AWS_SSH_KEY }}
-          script: |
-            cd /var/www/multi-app-cicd || git clone https://github.com/yanyan-handayani/multi-app-cicd.git /var/www/multi-app-cicd
-            cd /var/www/multi-app-cicd
-            git pull
-            docker compose down || true
-            docker compose up -d --build
-
   deploy-gcp:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
       - name: Deploy to GCP
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.GCP_HOST }}
           username: ${{ secrets.GCP_USER }}
           key: ${{ secrets.GCP_SSH_KEY }}
+          port: 22
           script: |
-            cd /var/www/multi-app-cicd || git clone https://github.com/yanyan-handayani/multi-app-cicd.git /var/www/multi-app-cicd
-            cd /var/www/multi-app-cicd
-            git pull
-            docker compose down || true
-            docker compose up -d --build
+            set -e
+
+            sudo mkdir -p /var/www/node-docker-app
+            sudo chown -R $USER:$USER /var/www/node-docker-app
+
+            cd /var/www/node-docker-app
+
+            cat > Dockerfile <<'EOF'
+            FROM node:20-alpine
+            WORKDIR /app
+            COPY package.json ./
+            RUN npm install
+            COPY . .
+            EXPOSE 3000
+            CMD ["npm", "start"]
+            EOF
+
+            cat > app.js <<'EOF'
+            const express = require("express");
+            const app = express();
+
+            app.get("/", (req, res) => {
+              res.send("Hello from Node Docker");
+            });
+
+            app.listen(3000, "0.0.0.0", () => {
+              console.log("Node app running on port 3000");
+            });
+            EOF
+
+            cat > package.json <<'EOF'
+            {
+              "name": "node-docker-app",
+              "version": "1.0.0",
+              "main": "app.js",
+              "scripts": {
+                "start": "node app.js"
+              },
+              "dependencies": {
+                "express": "^4.19.2"
+              }
+            }
+            EOF
+
+            docker stop node-docker-app || true
+            docker rm node-docker-app || true
+            docker build -t node-docker-app .
+            docker run -d --name node-docker-app -p 127.0.0.1:3000:3000 node-docker-app
+
+            sudo nginx -t
+            sudo systemctl reload nginx
