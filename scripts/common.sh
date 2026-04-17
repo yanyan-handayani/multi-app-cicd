@@ -29,6 +29,8 @@ deploy_docker() {
   cd "$APP_DIR"
   docker compose down || true
   docker compose up -d --build
+  sleep 2
+  docker ps -a || true
 }
 
 reload_nginx() {
@@ -41,17 +43,25 @@ reload_nginx() {
 
 healthcheck_node() {
   log "Checking node app with retry"
-  for i in {1..15}; do
-    if curl -fsS http://127.0.0.1:3000 >/dev/null; then
+
+  sleep 3
+
+  for i in {1..20}; do
+    if curl -fsS http://127.0.0.1:3000 >/dev/null 2>&1; then
       log "Node app is healthy"
       return 0
     fi
-    log "Node app not ready yet, retry $i/15"
+
+    log "Node app not ready yet, retry $i/20"
+
+    docker ps --filter name=node-app || true
+    docker logs --tail 20 node-app || true
+
     sleep 2
   done
 
   log "Node app failed health check"
-  docker ps || true
+  docker ps -a || true
   docker logs node-app || true
   return 1
 }
