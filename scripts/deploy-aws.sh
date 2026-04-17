@@ -16,7 +16,7 @@ else
 fi
 
 if [ -f "$APP_DIR/apps/laravel/artisan" ] && [ -f "$APP_DIR/apps/laravel/composer.json" ]; then
-  bash "$APP_DIR/scripts/deploy-laravel.sh"
+  bash "$APP_DIR/scripts/deploy-laravel-aws.sh"
 else
   log "Skipping Laravel deploy: source not ready"
 fi
