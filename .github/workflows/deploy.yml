@@ -17,10 +17,14 @@ jobs:
           key: ${{ secrets.GCP_SSH_KEY }}
           script: |
             set -e
-            cd /opt || true
-            rm -rf multi-app-cicd
-            git clone git@github.com:yanyan-handayani/multi-app-cicd.git
-            cd multi-app-cicd
+            sudo mkdir -p /opt/multi-app-cicd
+            sudo chown -R $USER:$USER /opt/multi-app-cicd
+            cd /opt/multi-app-cicd
+            if [ -d .git ]; then
+              git pull
+            else
+              git clone git@github.com:yanyan-handayani/multi-app-cicd.git .
+            fi
             docker compose down || true
             docker compose up -d --build
 
@@ -35,9 +39,13 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY }}
           script: |
             set -e
-            cd /opt || true
-            rm -rf multi-app-cicd
-            git clone git@github.com:yanyan-handayani/multi-app-cicd.git
-            cd multi-app-cicd
+            sudo mkdir -p /opt/multi-app-cicd
+            sudo chown -R $USER:$USER /opt/multi-app-cicd
+            cd /opt/multi-app-cicd
+            if [ -d .git ]; then
+              git pull
+            else
+              git clone git@github.com:yanyan-handayani/multi-app-cicd.git .
+            fi
             docker compose down || true
             docker compose up -d --build
