@@ -16,20 +16,17 @@ jobs:
           username: ${{ secrets.GCP_USER }}
           key: ${{ secrets.GCP_SSH_KEY }}
           script: |
-            set -e
-            sudo mkdir -p /opt/multi-app-cicd
-            sudo chown -R $USER:$USER /opt/multi-app-cicd
-            cd /opt/multi-app-cicd
-            if [ -d .git ]; then
-              git pull
-            else
-              git clone git@github.com:yanyan-handayani/multi-app-cicd.git .
+            bash /opt/multi-app-cicd/scripts/deploy-gcp.sh || true
+            if [ ! -f /opt/multi-app-cicd/scripts/deploy-gcp.sh ]; then
+              sudo mkdir -p /opt/multi-app-cicd
+              sudo chown -R $USER:$USER /opt/multi-app-cicd
+              if [ -d /opt/multi-app-cicd/.git ]; then
+                git -C /opt/multi-app-cicd pull --ff-only
+              else
+                git clone git@github.com:yanyan-handayani/multi-app-cicd.git /opt/multi-app-cicd
+              fi
+              bash /opt/multi-app-cicd/scripts/deploy-gcp.sh
             fi
-            docker compose down || true
-            docker compose up -d --build
-            sudo cp nginx/gcp.conf /etc/nginx/sites-available/default
-            sudo nginx -t
-            sudo systemctl reload nginx
 
   deploy-aws:
     runs-on: ubuntu-latest
@@ -41,17 +38,14 @@ jobs:
           username: ${{ secrets.AWS_USER }}
           key: ${{ secrets.AWS_SSH_KEY }}
           script: |
-            set -e
-            sudo mkdir -p /opt/multi-app-cicd
-            sudo chown -R $USER:$USER /opt/multi-app-cicd
-            cd /opt/multi-app-cicd
-            if [ -d .git ]; then
-              git pull
-            else
-              git clone git@github.com:yanyan-handayani/multi-app-cicd.git .
+            bash /opt/multi-app-cicd/scripts/deploy-aws.sh || true
+            if [ ! -f /opt/multi-app-cicd/scripts/deploy-aws.sh ]; then
+              sudo mkdir -p /opt/multi-app-cicd
+              sudo chown -R $USER:$USER /opt/multi-app-cicd
+              if [ -d /opt/multi-app-cicd/.git ]; then
+                git -C /opt/multi-app-cicd pull --ff-only
+              else
+                git clone git@github.com:yanyan-handayani/multi-app-cicd.git /opt/multi-app-cicd
+              fi
+              bash /opt/multi-app-cicd/scripts/deploy-aws.sh
             fi
-            docker compose down || true
-            docker compose up -d --build
-            sudo cp nginx/aws.conf /etc/nginx/sites-available/default
-            sudo nginx -t
-            sudo systemctl reload nginx
