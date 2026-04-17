@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=/dev/null
 source "$SCRIPT_DIR/common.sh"
 
 log "Starting deploy to GCP"
 sync_repo
 deploy_docker
 healthcheck_node
+bash "$APP_DIR/scripts/deploy-landing.sh"
+bash "$APP_DIR/scripts/deploy-django.sh"
+bash "$APP_DIR/scripts/deploy-laravel.sh"
 reload_nginx "nginx/gcp.conf"
 log "Deploy to GCP completed"

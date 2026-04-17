@@ -33,35 +33,27 @@ deploy_docker() {
   docker ps -a || true
 }
 
+healthcheck_node() {
+  log "Checking node app with retry"
+  sleep 3
+  for i in {1..20}; do
+    if curl -fsS http://127.0.0.1:3000 >/dev/null 2>&1; then
+      log "Node app is healthy"
+      return 0
+    fi
+    log "Node app not ready yet, retry $i/20"
+    docker logs --tail 20 node-app || true
+    sleep 2
+  done
+  docker ps -a || true
+  docker logs node-app || true
+  return 1
+}
+
 reload_nginx() {
   local conf_src="$1"
   log "Installing nginx config from $conf_src"
   sudo cp "$APP_DIR/$conf_src" /etc/nginx/sites-available/default
   sudo nginx -t
   sudo systemctl reload nginx
-}
-
-healthcheck_node() {
-  log "Checking node app with retry"
-
-  sleep 3
-
-  for i in {1..20}; do
-    if curl -fsS http://127.0.0.1:3000 >/dev/null 2>&1; then
-      log "Node app is healthy"
-      return 0
-    fi
-
-    log "Node app not ready yet, retry $i/20"
-
-    docker ps --filter name=node-app || true
-    docker logs --tail 20 node-app || true
-
-    sleep 2
-  done
-
-  log "Node app failed health check"
-  docker ps -a || true
-  docker logs node-app || true
-  return 1
 }
