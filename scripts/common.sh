@@ -40,6 +40,18 @@ reload_nginx() {
 }
 
 healthcheck_node() {
-  log "Checking node app"
-  curl -fsS http://127.0.0.1:3000 >/dev/null
+  log "Checking node app with retry"
+  for i in {1..15}; do
+    if curl -fsS http://127.0.0.1:3000 >/dev/null; then
+      log "Node app is healthy"
+      return 0
+    fi
+    log "Node app not ready yet, retry $i/15"
+    sleep 2
+  done
+
+  log "Node app failed health check"
+  docker ps || true
+  docker logs node-app || true
+  return 1
 }
