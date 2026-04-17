@@ -8,7 +8,17 @@ sync_repo
 deploy_docker
 healthcheck_node
 bash "$APP_DIR/scripts/deploy-landing.sh"
-bash "$APP_DIR/scripts/deploy-django.sh"
-bash "$APP_DIR/scripts/deploy-laravel.sh"
+
+if [ -f "$APP_DIR/apps/django/requirements.txt" ] && [ -f "$APP_DIR/apps/django/app/manage.py" ]; then
+  bash "$APP_DIR/scripts/deploy-django.sh"
+else
+  log "Skipping Django deploy: source not ready"
+fi
+
+if [ -f "$APP_DIR/apps/laravel/artisan" ] && [ -f "$APP_DIR/apps/laravel/composer.json" ]; then
+  bash "$APP_DIR/scripts/deploy-laravel.sh"
+else
+  log "Skipping Laravel deploy: source not ready"
+fi
 reload_nginx "nginx/gcp.conf"
 log "Deploy to GCP completed"
