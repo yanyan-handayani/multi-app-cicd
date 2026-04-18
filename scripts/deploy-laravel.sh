@@ -7,7 +7,7 @@ LARAVEL_DIR="$APP_DIR/apps/laravel"
 echo "[INFO] Deploying Laravel"
 
 sudo apt update
-sudo apt install -y php8.2 php8.2-fpm php8.2-cli php8.2-mysql php8.2-xml php8.2-mbstring php8.2-curl php8.2-zip unzip composer
+sudo apt install -y php8.2 php8.2-fpm php8.2-cli php8.2-mysql php8.2-xml php8.2-mbstring php8.2-curl php8.2-zip php8.2-sqlite3 unzip composer
 
 cd "$LARAVEL_DIR"
 
