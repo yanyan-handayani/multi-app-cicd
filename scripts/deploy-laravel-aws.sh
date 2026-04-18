@@ -24,7 +24,7 @@ php artisan route:clear || true
 php artisan view:clear || true
 
 sudo chown -R $USER:www-data "$LARAVEL_DIR"
-sudo chmod -R 775 "$LARAVEL_DIR/storage" "$LARAVEL_DIR/bootstrap/cache" || true
+sudo chmod -R 775 "$LARAVEL_DIR/storage" "$LARAVEL_DIR/bootstrap/cache" "$LARAVEL_DIR/database" || true
 
 sudo systemctl enable php8.4-fpm
 sudo systemctl restart php8.4-fpm
